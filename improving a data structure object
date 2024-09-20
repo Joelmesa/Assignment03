@@ -1,0 +1,231 @@
+/**
+ * A simple class to demonstrate dynamic behavior with arrays. Objects of this
+ * class store strings in an array that grows to match the demand for storage.
+ * 
+ * The class is based on an underlying string array. Objects can be initialized
+ * to any size; otherwise they'll be initialized to the default size. For
+ * example,
+ * 
+ * DynamicArray da1 = new DynamicArray(10);
+ * 
+ * will have initially room for 10 strings, while
+ * 
+ * DynamicArray da2 = new DynamicArray();
+ * 
+ * will have initially room for 4 strings.
+ */
+public class DynamicArray {
+
+    /** Default size for underlying array */
+    private static final int DEFAULT_SIZE = 4;
+
+    /** The underlying array for this class */
+    private String[] foundation;
+
+    /** Measures how many places in the array are in use */
+    private int occupancy;
+
+    /**
+     * Full constructor. Initializes the underlying array to the specified size. The
+     * size must be a positive, non-zero value. Otherwise, the constructor uses the
+     * default size value.
+     */
+    public DynamicArray(int size) {
+        // If size <= 0 use default -- this is a good time to demo ternary operator
+        size = (size > 0) ? size : DEFAULT_SIZE;
+        this.foundation = new String[size];
+        this.occupancy = 0;
+    } // full constructor
+
+    /**
+     * Array-based constructor -- used for testing.
+     * 
+     * WARNING: SHALLOW ARRAY COPY
+     * 
+     * @param data
+     */
+    public DynamicArray(String[] data) {
+        this(DEFAULT_SIZE);
+        if (data != null) {
+            this.foundation = data;
+            this.occupancy = data.length;
+        }
+    } // array-based constructor
+
+    /**
+     * Default constructor
+     */
+    public DynamicArray() {
+        this(DEFAULT_SIZE);
+    } // default constructor
+
+    /**
+     * Checks if the specified string is present in the dynamic array.
+     * 
+     * @param target The string to search for in the array
+     * @return true if the string is found, false otherwise
+     */
+    public boolean contains(String target) {
+        boolean found = false;
+        if (target != null && this.foundation != null) {
+            int i = 0;
+            while (i < this.occupancy && !found) {
+                found = this.foundation[i] != null && this.foundation[i].equals(target);
+                i++;
+            }
+        }
+        return found;
+    } // method contains
+
+    /**
+     * Retrieves the string at the specified index in the array.
+     * 
+     * @param index The index of the string to retrieve
+     * @return The string at the specified index, or null if the index is invalid
+     */
+    public String get(int index) {
+        String string = null;
+        if (index >= 0 && this.foundation != null && index < this.foundation.length) {
+            string = this.foundation[index];
+        }
+        return string;
+    } // method get
+
+    /**
+     * Removes the string at the specified index in the array and sets its position
+     * to null. Then it moves every element to the right of the removed element, one
+     * position to the left. The position of the last element to be copied to the
+     * left is then emptied out (null).
+     * 
+     * @param index The index of the string to remove
+     * @return The string that was removed, or null if the index is invalid
+     */
+    public String remove(int index) {
+        String removed = null;
+        if (this.occupancy > 0 && index >= 0 && index < this.foundation.length) {
+            removed = this.foundation[index];
+            this.foundation[index] = null;
+            for (int i = index; i < occupancy - 1; i++) {
+                this.foundation[i] = this.foundation[i + 1];
+            }
+            this.foundation[occupancy - 1] = null;
+            this.occupancy--;
+        }
+        return removed;
+    } // method remove
+
+    /**
+     * Deletes the string at the specified index in the array.
+     * 
+     * This method uses this.remove and simply ignores the returned string.
+     * 
+     * @param index The index of the string to delete
+     */
+    public void delete(int index) {
+        String whatEver = remove(index);
+    } // method delete
+
+    /**
+     * Resizes the underlying array by increasing its capacity by 1.
+     * 
+     * This method is called internally when the current array reaches its capacity
+     * and a new element needs to be inserted.
+     */
+    private void resize() {
+        String[] temp = new String[this.foundation.length + 1];
+        for (int i = 0; i < this.occupancy; i++) {
+            temp[i] = this.foundation[i];
+        }
+        this.foundation = temp;
+    } // method resize
+
+    /**
+     * Inserts a new string into the dynamic array.
+     * 
+     * If the string is not null and the array is full, it will be resized to
+     * accommodate the new element.
+     * 
+     * @param string The string to insert into the array
+     */
+    public void insert(String string) {
+        if (string != null) {
+            if (this.occupancy == this.foundation.length) {
+                this.resize();
+            }
+            this.foundation[this.occupancy] = string;
+            this.occupancy++;
+        }
+    } // method insert
+
+    /**
+     * Creates a textual representation of the object.
+     * This method returns a string representation of the current state
+     * of the array by concatenating all elements that are currently in use 
+     * (based on the `occupancy` variable) and separating them with commas, 
+     * wrapped inside square brackets.
+     * 
+     * @return A string representing the contents of the DynamicArray
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("[");
+        for (int i = 0; i < this.occupancy; i++) {
+            sb.append(this.foundation[i]);
+            if (i < this.occupancy - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
+    } // method toString
+
+    /**
+     * Returns the array position of the string in the underlying array.
+     * This method searches the array up to the current `occupancy` to locate
+     * the first occurrence of the provided `string`. It returns the index of 
+     * the string if found, or -1 if the string is not present.
+     * 
+     * @param string The string to find in the array
+     * @return The index of the string, or -1 if not found
+     */
+    public int index(String string) {
+        if (string == null) {
+            return -1;
+        }
+        for (int i = 0; i < this.occupancy; i++) {
+            if (string.equals(this.foundation[i])) {
+                return i;
+            }
+        }
+        return -1;
+    } // method index
+
+    /**
+     * Returns the percentage of the underlying array that is currently used.
+     * This method calculates the percentage of the array that is occupied 
+     * by dividing `occupancy` by the total length of the array. The result 
+     * is rounded to two decimal places and returned.
+     * 
+     * @return The usage percentage, rounded to two decimal places
+     */
+    public double usage() {
+        double usage = ((double) this.occupancy / this.foundation.length) * 100;
+        return Math.round(usage * 100.0) / 100.0;
+    } // method usage
+
+    /** Driver/test code */
+    public static void main(String[] args) {
+        final String PASS = "Pass";
+        final String FAIL = "Fail";
+        final String NON_EXISTING = "COBOL";
+        // Test data
+        String[] testData = { "Java", "Python", "C", "C++", "Fortran" };
+        DynamicArray test = new DynamicArray(testData);
+
+        System.out.println(test.toString());  // Test toString method
+        System.out.println("Index of 'C': " + test.index("C"));  // Test index method
+        System.out.println("Usage: " + test.usage() + "%");  // Test usage method
+    } // method main
+
+} // class DynamicArray
